@@ -14,7 +14,10 @@ import AllergiesList from '@/components/medical/AllergiesList';
 import LabResultsList from '@/components/medical/LabResultsList';
 import VisitHistoryList from '@/components/medical/VisitHistoryList';
 import EmergencyContactsList from '@/components/medical/EmergencyContactsList';
-import { Stethoscope, Pill, AlertTriangle, FlaskConical, Calendar, Phone, ArrowLeft, User, IdCard, Building2, Info } from 'lucide-react';
+import VaccinationTracker from '@/components/vaccination/VaccinationTracker';
+import { useVaccinations, useAddVaccination } from '@/hooks/useVaccinations';
+import { toast } from 'sonner';
+import { Stethoscope, Pill, AlertTriangle, FlaskConical, Calendar, Phone, ArrowLeft, User, IdCard, Building2, Info, Syringe } from 'lucide-react';
 
 export default function PatientView() {
   const { patientId } = useParams();
@@ -22,6 +25,9 @@ export default function PatientView() {
   const facilityId = searchParams.get('facilityId');
   const { user, role, loading } = useAuth();
   const navigate = useNavigate();
+
+  const { data: vaccinations } = useVaccinations(patientId);
+  const addVaccination = useAddVaccination(patientId);
 
   // Fetch patient profile
   const { data: patientProfile, isLoading: profileLoading } = useQuery({
@@ -178,7 +184,7 @@ export default function PatientView() {
         )}
 
         <Tabs defaultValue="conditions" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-7">
             <TabsTrigger value="conditions" className="gap-2">
               <Stethoscope className="h-4 w-4" />
               <span className="hidden sm:inline">Conditions</span>
@@ -198,6 +204,10 @@ export default function PatientView() {
             <TabsTrigger value="visits" className="gap-2">
               <Calendar className="h-4 w-4" />
               <span className="hidden sm:inline">Visits</span>
+            </TabsTrigger>
+            <TabsTrigger value="vaccinations" className="gap-2">
+              <Syringe className="h-4 w-4" />
+              <span className="hidden sm:inline">Vaccines</span>
             </TabsTrigger>
             <TabsTrigger value="contacts" className="gap-2">
               <Phone className="h-4 w-4" />
@@ -219,6 +229,19 @@ export default function PatientView() {
           </TabsContent>
           <TabsContent value="visits">
             <VisitHistoryList patientId={patientId} readOnly={readOnly} />
+          </TabsContent>
+          <TabsContent value="vaccinations">
+            <VaccinationTracker
+              patientId={patientId}
+              readOnly={readOnly}
+              vaccinations={vaccinations || []}
+              onAddVaccination={(v) =>
+                addVaccination.mutate(v, {
+                  onSuccess: () => toast.success('Vaccination recorded'),
+                  onError: () => toast.error('Failed to record vaccination'),
+                })
+              }
+            />
           </TabsContent>
           <TabsContent value="contacts">
             <EmergencyContactsList patientId={patientId} readOnly={readOnly} />

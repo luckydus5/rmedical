@@ -16,8 +16,7 @@ import {
   Pill,
   Heart,
   FileText,
-  Building2,
-  BarChart3
+  Building2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -168,14 +167,8 @@ export function AnalyticsDashboard({
             <h1 className="text-2xl font-bold">{facilityName}</h1>
           </div>
           <p className="text-muted-foreground mt-1">
-            Analytics Dashboard • Updated just now
+            Facility activity overview
           </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="gap-1">
-            <BarChart3 className="h-3 w-3" />
-            Last 30 days
-          </Badge>
         </div>
       </div>
 
@@ -259,26 +252,30 @@ export function AnalyticsDashboard({
               Common Conditions
             </CardTitle>
             <CardDescription>
-              Most diagnosed conditions this month
+              Most frequent recorded diagnoses
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {data.commonConditions.map((condition, index) => (
-                <div key={condition.name}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium">{condition.name}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {condition.count} ({condition.percentage}%)
-                    </span>
+            {data.commonConditions.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No diagnoses recorded yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {data.commonConditions.map((condition) => (
+                  <div key={condition.name}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium">{condition.name}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {condition.count} ({condition.percentage}%)
+                      </span>
+                    </div>
+                    <Progress
+                      value={condition.percentage}
+                      className="h-2"
+                    />
                   </div>
-                  <Progress 
-                    value={condition.percentage} 
-                    className="h-2"
-                  />
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -294,22 +291,26 @@ export function AnalyticsDashboard({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {data.ageDistribution.map((age) => (
-                <div key={age.range}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium">{age.range} years</span>
-                    <span className="text-sm text-muted-foreground">
-                      {age.count} ({age.percentage}%)
-                    </span>
+            {data.ageDistribution.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No patient demographics available yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {data.ageDistribution.map((age) => (
+                  <div key={age.range}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium">{age.range} years</span>
+                      <span className="text-sm text-muted-foreground">
+                        {age.count} ({age.percentage}%)
+                      </span>
+                    </div>
+                    <Progress
+                      value={age.percentage}
+                      className="h-2"
+                    />
                   </div>
-                  <Progress 
-                    value={age.percentage} 
-                    className="h-2"
-                  />
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -321,26 +322,30 @@ export function AnalyticsDashboard({
               Most Prescribed Medications
             </CardTitle>
             <CardDescription>
-              Top medications dispensed this month
+              Most prescribed medications at this facility
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {data.commonMedications.map((med, index) => (
-                <div 
-                  key={med.name}
-                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-sm font-bold text-purple-600">
-                      {index + 1}
+            {data.commonMedications.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No prescriptions recorded yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {data.commonMedications.map((med, index) => (
+                  <div
+                    key={med.name}
+                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-sm font-bold text-purple-600">
+                        {index + 1}
+                      </div>
+                      <span className="font-medium">{med.name}</span>
                     </div>
-                    <span className="font-medium">{med.name}</span>
+                    <Badge variant="secondary">{med.count}</Badge>
                   </div>
-                  <Badge variant="secondary">{med.count}</Badge>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -356,67 +361,30 @@ export function AnalyticsDashboard({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {data.recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-start gap-3">
-                  <div className="p-2 bg-muted rounded-full">
-                    {getActivityIcon(activity.type)}
+            {data.recentActivity.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No recent activity.</p>
+            ) : (
+              <div className="space-y-4">
+                {data.recentActivity.map((activity, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="p-2 bg-muted rounded-full">
+                      {getActivityIcon(activity.type)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {activity.description}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {activity.time}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {activity.description}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {activity.time}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
-
-      {/* Public Health Insights */}
-      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-green-600" />
-            Public Health Insights
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-white/70 rounded-lg">
-              <div className="text-2xl font-bold text-green-600 mb-1">
-                ↓ 23%
-              </div>
-              <p className="text-sm font-medium">Malaria Cases</p>
-              <p className="text-xs text-muted-foreground">
-                Compared to same period last year
-              </p>
-            </div>
-            <div className="p-4 bg-white/70 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600 mb-1">
-                76.4%
-              </div>
-              <p className="text-sm font-medium">Childhood Immunization</p>
-              <p className="text-xs text-muted-foreground">
-                On track with WHO targets
-              </p>
-            </div>
-            <div className="p-4 bg-white/70 rounded-lg">
-              <div className="text-2xl font-bold text-purple-600 mb-1">
-                89%
-              </div>
-              <p className="text-sm font-medium">ARV Adherence Rate</p>
-              <p className="text-xs text-muted-foreground">
-                Above regional average
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

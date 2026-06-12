@@ -257,10 +257,9 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   };
 
   const handleNavClick = (item: NavItem) => {
+    onTabChange(item.id);
     if (item.route) {
       navigate(item.route);
-    } else {
-      onTabChange(item.id);
     }
   };
 

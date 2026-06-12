@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -15,38 +15,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  TrendingDown,
-  Users, 
-  Building2, 
+import {
+  BarChart3,
+  Users,
+  Building2,
   Calendar,
   Activity,
-  FileText,
   RefreshCw,
-  ArrowUpRight,
-  ArrowDownRight,
   PieChart,
-  LineChart,
-  Download,
-  Filter
+  Download
 } from 'lucide-react';
-import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
+import { format, subDays, startOfMonth } from 'date-fns';
 
 export default function Analytics() {
   const { role } = useAuth();
   const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState('30d');
 
-  if (role !== 'admin') {
-    navigate('/');
-    return null;
-  }
-
   // Fetch analytics data
-  const { data: analytics, isLoading, refetch } = useQuery({
+  const { data: analytics, refetch } = useQuery({
     queryKey: ['admin-analytics', timeRange],
+    enabled: role === 'admin',
     queryFn: async () => {
       const today = new Date();
       const startDate = timeRange === '7d' 
@@ -127,30 +116,43 @@ export default function Analytics() {
     },
   });
 
-  const StatCard = ({ title, value, change, icon: Icon, color }: any) => (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div className={`p-3 rounded-xl bg-${color}-500/10`}>
-            <Icon className={`h-6 w-6 text-${color}-500`} />
-          </div>
-          {change !== undefined && (
-            <Badge 
-              variant="outline" 
-              className={change >= 0 ? 'text-emerald-500 border-emerald-500/30' : 'text-red-500 border-red-500/30'}
-            >
-              {change >= 0 ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
-              {Math.abs(change)}%
-            </Badge>
-          )}
-        </div>
-        <div className="mt-4">
-          <p className="text-3xl font-bold">{value}</p>
-          <p className="text-sm text-muted-foreground">{title}</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  useEffect(() => {
+    if (role && role !== 'admin') {
+      navigate('/');
+    }
+  }, [role, navigate]);
+
+  const handleExport = () => {
+    if (!analytics) return;
+    const rows: Array<[string, string | number]> = [
+      ['Metric', 'Value'],
+      ['Total facilities', analytics.totalFacilities],
+      ['Active facilities', analytics.activeFacilities],
+      ['Total users', analytics.totalUsers],
+      ['New users (period)', analytics.newUsers],
+      ['Active staff', analytics.totalStaff],
+      ['Total appointments', analytics.totalAppointments],
+      ['New appointments (period)', analytics.recentAppointments],
+      ...Object.entries(analytics.facilityTypes).map(
+        ([type, count]): [string, number] => [`Facilities: ${type}`, count]
+      ),
+      ...Object.entries(analytics.staffRoles).map(
+        ([staffRole, count]): [string, number] => [`Staff: ${staffRole}`, count]
+      ),
+    ];
+    const csv = rows.map((row) => row.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `sanovia-analytics-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  if (role !== 'admin') {
+    return null;
+  }
 
   return (
     <DashboardLayout activeTab="analytics">
@@ -180,7 +182,7 @@ export default function Analytics() {
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
-            <Button>
+            <Button onClick={handleExport} disabled={!analytics}>
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
@@ -339,29 +341,7 @@ export default function Analytics() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Platform Health</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">System Uptime</span>
-                  <Badge className="bg-emerald-500/10 text-emerald-500 border-0">99.9%</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">API Response</span>
-                  <Badge className="bg-emerald-500/10 text-emerald-500 border-0">42ms</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Error Rate</span>
-                  <Badge className="bg-emerald-500/10 text-emerald-500 border-0">0.01%</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
+        <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Data Overview</CardTitle>
@@ -369,16 +349,16 @@ export default function Analytics() {
             <CardContent>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Total Records</span>
-                  <span className="font-medium">{(analytics?.totalUsers || 0) + (analytics?.totalAppointments || 0)}</span>
+                  <span className="text-sm text-muted-foreground">Total Facilities</span>
+                  <span className="font-medium">{analytics?.totalFacilities || 0}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Storage Used</span>
-                  <span className="font-medium">2.4 GB</span>
+                  <span className="text-sm text-muted-foreground">Total Users</span>
+                  <span className="font-medium">{analytics?.totalUsers || 0}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Database Size</span>
-                  <span className="font-medium">1.2 GB</span>
+                  <span className="text-sm text-muted-foreground">Total Appointments</span>
+                  <span className="font-medium">{analytics?.totalAppointments || 0}</span>
                 </div>
               </div>
             </CardContent>
@@ -401,10 +381,6 @@ export default function Analytics() {
                   <Badge className="bg-blue-500/10 text-blue-500 border-0">
                     +{analytics?.recentAppointments || 0}
                   </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Active Rate</span>
-                  <span className="font-medium text-emerald-500">87%</span>
                 </div>
               </div>
             </CardContent>

@@ -1,0 +1,38 @@
+tablename,policyname,applies_to,roles,using_expression,with_check_expression
+access_grants,Patients can manage own grants,ALL,{authenticated},(patient_id = auth.uid()),(patient_id = auth.uid())
+access_grants,Patients can view own grants,SELECT,{authenticated},(patient_id = auth.uid()),null
+access_grants,Providers can view grants given to them,SELECT,{authenticated},(granted_to_id = auth.uid()),null
+access_logs,System can insert access logs,INSERT,{authenticated},null,true
+access_logs,Admins can view all access logs,SELECT,{authenticated},"has_role(auth.uid(), 'admin'::app_role)",null
+access_logs,Patients can view own access logs,SELECT,{authenticated},(patient_id = auth.uid()),null
+allergies,Patients can manage own allergies,ALL,{authenticated},(patient_id = auth.uid()),(patient_id = auth.uid())
+allergies,Healthcare providers can view allergies,SELECT,{authenticated},"(has_role(auth.uid(), 'doctor'::app_role) OR has_role(auth.uid(), 'nurse'::app_role) OR has_role(auth.uid(), 'admin'::app_role))",null
+allergies,Patients can view own allergies,SELECT,{authenticated},(patient_id = auth.uid()),null
+emergency_contacts,Patients can manage own contacts,ALL,{authenticated},(patient_id = auth.uid()),(patient_id = auth.uid())
+emergency_contacts,Healthcare providers can view contacts,SELECT,{authenticated},"(has_role(auth.uid(), 'doctor'::app_role) OR has_role(auth.uid(), 'nurse'::app_role) OR has_role(auth.uid(), 'admin'::app_role))",null
+emergency_contacts,Patients can view own contacts,SELECT,{authenticated},(patient_id = auth.uid()),null
+facility_patients,Staff can register patients,INSERT,{public},null,"(is_facility_staff(auth.uid(), facility_id) OR has_role(auth.uid(), 'admin'::app_role))"
+facility_patients,Staff can view their facility patients,SELECT,{public},"((patient_id = auth.uid()) OR is_facility_staff(auth.uid(), facility_id) OR has_role(auth.uid(), 'admin'::app_role))",null
+facility_patients,Staff can update patient records,UPDATE,{public},"(is_facility_staff(auth.uid(), facility_id) OR has_role(auth.uid(), 'admin'::app_role))",null
+facility_staff,Facility admins can remove staff,DELETE,{public},"((get_facility_role(auth.uid(), facility_id) = 'facility_admin'::facility_role) OR has_role(auth.uid(), 'admin'::app_role))",null
+facility_staff,Facility admins can manage staff,INSERT,{public},null,"((get_facility_role(auth.uid(), facility_id) = 'facility_admin'::facility_role) OR has_role(auth.uid(), 'admin'::app_role))"
+facility_staff,Staff can view their own facility staff,SELECT,{public},"((user_id = auth.uid()) OR is_facility_staff(auth.uid(), facility_id) OR has_role(auth.uid(), 'admin'::app_role))",null
+facility_staff,Facility admins can update staff,UPDATE,{public},"((get_facility_role(auth.uid(), facility_id) = 'facility_admin'::facility_role) OR has_role(auth.uid(), 'admin'::app_role))",null
+lab_results,Patients can manage own lab results,ALL,{authenticated},(patient_id = auth.uid()),(patient_id = auth.uid())
+lab_results,Healthcare providers can add lab results,INSERT,{authenticated},null,"(has_role(auth.uid(), 'doctor'::app_role) OR has_role(auth.uid(), 'nurse'::app_role))"
+lab_results,Healthcare providers can view lab results,SELECT,{authenticated},"(has_role(auth.uid(), 'doctor'::app_role) OR has_role(auth.uid(), 'nurse'::app_role) OR has_role(auth.uid(), 'admin'::app_role))",null
+lab_results,Patients can view own lab results,SELECT,{authenticated},(patient_id = auth.uid()),null
+medical_conditions,Patients can manage own conditions,ALL,{authenticated},(patient_id = auth.uid()),(patient_id = auth.uid())
+medical_conditions,Healthcare providers can view conditions,SELECT,{authenticated},"(has_role(auth.uid(), 'doctor'::app_role) OR has_role(auth.uid(), 'nurse'::app_role) OR has_role(auth.uid(), 'admin'::app_role))",null
+medical_conditions,Patients can view own conditions,SELECT,{authenticated},(patient_id = auth.uid()),null
+medications,Patients can manage own medications,ALL,{authenticated},(patient_id = auth.uid()),(patient_id = auth.uid())
+medications,Healthcare providers can view medications,SELECT,{authenticated},"(has_role(auth.uid(), 'doctor'::app_role) OR has_role(auth.uid(), 'nurse'::app_role) OR has_role(auth.uid(), 'admin'::app_role))",null
+medications,Patients can view own medications,SELECT,{authenticated},(patient_id = auth.uid()),null
+profiles,Users can insert their own profile,INSERT,{authenticated},null,(user_id = auth.uid())
+profiles,Healthcare providers can view patient profiles,SELECT,{authenticated},"(has_role(auth.uid(), 'doctor'::app_role) OR has_role(auth.uid(), 'nurse'::app_role) OR has_role(auth.uid(), 'admin'::app_role))",null
+profiles,Users can view their own profile,SELECT,{authenticated},(user_id = auth.uid()),null
+profiles,Users can update their own profile,UPDATE,{authenticated},(user_id = auth.uid()),null
+visit_history,Patients can manage own visits,ALL,{authenticated},(patient_id = auth.uid()),(patient_id = auth.uid())
+visit_history,Healthcare providers can add visits,INSERT,{authenticated},null,"(has_role(auth.uid(), 'doctor'::app_role) OR has_role(auth.uid(), 'nurse'::app_role))"
+visit_history,Healthcare providers can view visits,SELECT,{authenticated},"(has_role(auth.uid(), 'doctor'::app_role) OR has_role(auth.uid(), 'nurse'::app_role) OR has_role(auth.uid(), 'admin'::app_role))",null
+visit_history,Patients can view own visits,SELECT,{authenticated},(patient_id = auth.uid()),null

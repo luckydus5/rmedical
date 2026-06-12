@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -79,10 +79,11 @@ export default function AuditLogs() {
   const [actionFilter, setActionFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('7d');
 
-  if (role && role !== 'admin') {
-    navigate('/');
-    return null;
-  }
+  useEffect(() => {
+    if (role && role !== 'admin') {
+      navigate('/');
+    }
+  }, [role, navigate]);
 
   const sinceDate = (() => {
     switch (dateFilter) {
@@ -96,6 +97,7 @@ export default function AuditLogs() {
 
   const { data: logs = [], isLoading, refetch, isFetching } = useQuery({
     queryKey: ['audit-logs', dateFilter],
+    enabled: role === 'admin',
     queryFn: async (): Promise<AuditLogRow[]> => {
       const { data, error } = await supabase
         .from('audit_log' as never)
@@ -132,6 +134,10 @@ export default function AuditLogs() {
       toast({ title: 'Verification failed', description: err.message, variant: 'destructive' });
     },
   });
+
+  if (role && role !== 'admin') {
+    return null;
+  }
 
   const filteredLogs = logs.filter((log) => {
     const q = searchQuery.toLowerCase();

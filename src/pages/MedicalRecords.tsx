@@ -18,6 +18,8 @@ import SmartHealthAlerts from '@/components/alerts/SmartHealthAlerts';
 import EmergencyAccessCard from '@/components/emergency/EmergencyAccessCard';
 import { Stethoscope, Pill, AlertTriangle, FlaskConical, Calendar, Phone, Info, Syringe, QrCode } from 'lucide-react';
 import { useMedications, useAllergies, useMedicalConditions } from '@/hooks/useMedicalRecords';
+import { useVaccinations, useAddVaccination } from '@/hooks/useVaccinations';
+import { toast } from 'sonner';
 
 export default function MedicalRecords() {
   const { user, role, loading } = useAuth();
@@ -28,6 +30,8 @@ export default function MedicalRecords() {
   const { data: medications } = useMedications(user?.id);
   const { data: allergies } = useAllergies(user?.id);
   const { data: conditions } = useMedicalConditions(user?.id);
+  const { data: vaccinations } = useVaccinations(user?.id);
+  const addVaccination = useAddVaccination(user?.id);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -50,14 +54,14 @@ export default function MedicalRecords() {
 
   // Extract medication names for components that need them
   const medicationNames = (medications || [])
-    .filter((m: any) => m.is_active)
-    .map((m: any) => m.medication_name);
+    .filter((m) => m.is_active)
+    .map((m) => m.medication_name);
 
   // Extract allergy names
-  const allergyNames = (allergies || []).map((a: any) => a.allergen);
-  
+  const allergyNames = (allergies || []).map((a) => a.allergen);
+
   // Extract condition names
-  const conditionNames = (conditions || []).map((c: any) => c.condition_name);
+  const conditionNames = (conditions || []).map((c) => c.condition_name);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
@@ -157,9 +161,16 @@ export default function MedicalRecords() {
             <VisitHistoryList readOnly={readOnly} />
           </TabsContent>
           <TabsContent value="vaccinations">
-            <VaccinationTracker 
-              patientId={user.id} 
+            <VaccinationTracker
+              patientId={user.id}
               readOnly={readOnly}
+              vaccinations={vaccinations || []}
+              onAddVaccination={(v) =>
+                addVaccination.mutate(v, {
+                  onSuccess: () => toast.success('Vaccination recorded'),
+                  onError: () => toast.error('Failed to record vaccination'),
+                })
+              }
             />
           </TabsContent>
           <TabsContent value="emergency">

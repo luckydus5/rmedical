@@ -13,6 +13,8 @@ import FacilityStaffList from '@/components/facility/FacilityStaffList';
 import PatientRecordsTable from '@/components/doctor/PatientRecordsTable';
 import AddPatientRecord from '@/components/doctor/AddPatientRecord';
 import PatientRegistration from '@/components/nurse/PatientRegistration';
+import AnalyticsDashboard from '@/components/analytics/AnalyticsDashboard';
+import { useFacilityAnalytics } from '@/hooks/useFacilityAnalytics';
 import { 
   Building2, 
   Users, 
@@ -25,7 +27,8 @@ import {
   Activity,
   FileText,
   Plus,
-  UserPlus
+  UserPlus,
+  BarChart3
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
@@ -39,6 +42,7 @@ export default function FacilityDashboard() {
   const { data: facility, isLoading: facilityLoading } = useFacility(facilityId);
   const { data: patients } = useFacilityPatients(facilityId);
   const { data: staff } = useFacilityStaff(facilityId);
+  const { data: analytics } = useFacilityAnalytics(facilityId);
 
   // Get user's role at this facility
   const { data: userFacilityRole } = useQuery({
@@ -179,7 +183,7 @@ export default function FacilityDashboard() {
                 <Activity className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-2xl font-bold">0</p>
+                <p className="text-2xl font-bold">{analytics?.visitsToday ?? 0}</p>
                 <p className="text-sm text-muted-foreground">Today's Visits</p>
               </div>
             </CardContent>
@@ -228,6 +232,13 @@ export default function FacilityDashboard() {
                 Staff
               </TabsTrigger>
             )}
+
+            {canManageStaff && (
+              <TabsTrigger value="analytics" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Analytics
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {/* Doctor tabs content */}
@@ -261,6 +272,12 @@ export default function FacilityDashboard() {
           {canManageStaff && (
             <TabsContent value="staff">
               <FacilityStaffList facilityId={facilityId!} currentUserRole={userFacilityRole} />
+            </TabsContent>
+          )}
+
+          {canManageStaff && (
+            <TabsContent value="analytics">
+              <AnalyticsDashboard facilityName={facility.name} data={analytics} />
             </TabsContent>
           )}
         </Tabs>
