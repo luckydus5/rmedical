@@ -101,8 +101,21 @@ export default function ProfileSettings() {
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
       toast.success('Profile updated successfully');
     },
-    onError: (error) => {
-      toast.error('Failed to update profile: ' + error.message);
+    onError: (error: unknown) => {
+      const err = error as { code?: string; message?: string };
+      const message = err?.message ?? '';
+
+      // Postgres unique-violation (23505) on the National ID: surface a clear,
+      // actionable message instead of the raw constraint name.
+      if (err?.code === '23505' || message.includes('profiles_national_id_unique')) {
+        form.setError('national_id', {
+          message: 'This National ID is already registered to another account.',
+        });
+        toast.error('That National ID is already in use. Each National ID can belong to only one person.');
+        return;
+      }
+
+      toast.error('Could not save your changes. Please try again.');
     },
   });
 

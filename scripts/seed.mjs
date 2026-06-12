@@ -205,11 +205,18 @@ async function clearClinical(patientId) {
   }
 }
 
+let insertWarnings = 0;
+
 async function insertRows(table, patientId, rows) {
   if (!rows || rows.length === 0) return;
   const withPatient = rows.map((r) => ({ ...r, patient_id: patientId }));
   const { error } = await admin.from(table).insert(withPatient);
-  if (error) throw new Error(`${table}: ${error.message}`);
+  if (error) {
+    // Don't abort the whole seed for one table — this schema has check
+    // constraints that aren't in the repo. Report precisely and keep going.
+    insertWarnings++;
+    console.warn(`  ! ${table} skipped for ${patientId}: ${error.message}`);
+  }
 }
 
 // --- preflight --------------------------------------------------------------
@@ -332,6 +339,9 @@ async function main() {
     console.log(`  patient ${p.email.padEnd(26)} -> records loaded`);
   }
 
+  if (insertWarnings > 0) {
+    console.log(`\n${insertWarnings} record group(s) were skipped (see warnings above).`);
+  }
   console.log('\nDone. Every demo account uses the password below.\n');
   console.log(`  Password: ${DEMO_PASSWORD}`);
   console.log('\nKey logins:');
