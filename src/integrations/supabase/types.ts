@@ -806,6 +806,51 @@ export type Database = {
         }
         Relationships: []
       }
+      vaccinations: {
+        Row: {
+          administered_by: string | null
+          batch_number: string | null
+          created_at: string
+          date_administered: string
+          dose_number: number
+          facility_name: string | null
+          id: string
+          next_dose_date: string | null
+          patient_id: string
+          total_doses: number
+          updated_at: string
+          vaccine_name: string
+        }
+        Insert: {
+          administered_by?: string | null
+          batch_number?: string | null
+          created_at?: string
+          date_administered?: string
+          dose_number?: number
+          facility_name?: string | null
+          id?: string
+          next_dose_date?: string | null
+          patient_id: string
+          total_doses?: number
+          updated_at?: string
+          vaccine_name: string
+        }
+        Update: {
+          administered_by?: string | null
+          batch_number?: string | null
+          created_at?: string
+          date_administered?: string
+          dose_number?: number
+          facility_name?: string | null
+          id?: string
+          next_dose_date?: string | null
+          patient_id?: string
+          total_doses?: number
+          updated_at?: string
+          vaccine_name?: string
+        }
+        Relationships: []
+      }
       visit_history: {
         Row: {
           chief_complaint: string | null
@@ -873,6 +918,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_patient: {
+        Args: { _patient: string; _provider: string }
+        Returns: boolean
+      }
       create_notification: {
         Args: {
           p_action_url?: string
